@@ -110,3 +110,11 @@
 .fade-leave-to {
   opacity: 0;
 }
+
+/* Mobile responsive padding */
+@media (max-width: 768px) {
+  body {
+    padding-top: 20px;
+  }
+}
+
