@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://mobile.techinfo.uz/api/:path*"
+    },
+    {
+      "source": "/((?!api|assets|favicon|pwa-|manifest.webmanifest|sw-push.js|registerSW.js).*)",
+      "destination": "/index.html"
+    }
+  ]
+}
