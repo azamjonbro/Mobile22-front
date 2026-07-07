@@ -70,6 +70,22 @@ export const useAuthStore = defineStore('auth', {
         delete axios.defaults.headers.common['Authorization'];
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        
+        // Clear PWA offline queue on logout to prevent cross-account sync leaking
+        localStorage.removeItem('crm_offline_queue');
+
+        // Clear sensitive PWA cache storage
+        if ('caches' in window) {
+          try {
+            const keys = await caches.keys();
+            for (const key of keys) {
+              await caches.delete(key);
+            }
+          } catch (e) {
+            console.error('Cache clearing on logout failed:', e.message);
+          }
+        }
+
         notifications.info('Logged Out', 'You have been logged out of the system');
       }
     }

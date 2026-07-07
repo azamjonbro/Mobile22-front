@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
 import { useNotificationStore } from './notifications';
+import { addToOfflineQueue } from '../utils/offlineQueue';
 
 export const useInstallmentsStore = defineStore('installments', {
   state: () => ({
