@@ -52,17 +52,20 @@ export const useSalesStore = defineStore('sales', {
           });
           useNotificationStore().warning('Oflayn rejim', 'Sotuv navbatga qo\'shildi. Internet tiklanganda serverga yuboriladi.');
           
-          // Mock response for invoice print overlay
-          const totalSelling = Object.values(saleData.sellingPrices || {}).reduce((s, v) => s + (parseFloat(v) || 0), 0);
+          const totalSelling = Object.keys(saleData.sellingPrices || {}).reduce((s, id) => {
+            const qty = saleData.quantities?.[id] || 1;
+            return s + ((parseFloat(saleData.sellingPrices[id]) || 0) * qty);
+          }, 0);
+          
           return {
             invoiceNumber: `OFFLINE-INV-${Math.floor(1000 + Math.random() * 9000)}`,
             customerName: saleData.customerName || 'Walk-in Customer',
             phoneNumber: saleData.phoneNumber || '',
             phones: saleData.phoneIds.map(id => ({
-              phoneId: id,
+              productId: id,
               brand: 'Telefon',
               model: 'Oflayn sotilgan',
-              imei1: 'Oflayn tranzaksiya',
+              quantity: saleData.quantities?.[id] || 1,
               sellingPrice: saleData.sellingPrices?.[id] || 0
             })),
             discount: saleData.discount,

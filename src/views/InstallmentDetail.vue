@@ -54,12 +54,11 @@
               >
                 <div class="flex items-center gap-3">
                   <div class="w-8 h-8 rounded-lg bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
-                    <SmartphoneIcon v-if="item.itemType === 'Phone'" class="w-4 h-4 text-primary-600 dark:text-primary-400" />
+                    <SmartphoneIcon v-if="item.itemType === 'Product'" class="w-4 h-4 text-primary-600 dark:text-primary-400" />
                     <TagIcon v-else class="w-4 h-4 text-primary-600 dark:text-primary-400" />
                   </div>
                   <div>
                     <p class="text-xs font-bold text-slate-800 dark:text-white">{{ item.name }}</p>
-                    <p v-if="item.imei" class="text-[10px] text-slate-400 font-mono">IMEI: {{ item.imei }}</p>
                   </div>
                 </div>
                 <div class="text-right">

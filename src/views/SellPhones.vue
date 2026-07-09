@@ -6,7 +6,7 @@
         <!-- Phone Search and Add to Ticket -->
         <div class="p-6 rounded-2xl border glass-card space-y-4">
           <h3 class="text-sm font-bold text-slate-800 dark:text-white">
-            Sotish uchun telefon qidirish
+            Sotish uchun mahsulot qidirish
           </h3>
 
           <div class="relative">
@@ -17,7 +17,7 @@
               v-model="searchQuery"
               @input="searchPhones"
               type="text"
-              placeholder="IMEI yoki model nomini kiriting..."
+              placeholder="Mahsulot nomi, brand yoki xotira hajmini kiriting..."
               class="w-full pl-9 pr-4 py-2.5 text-xs bg-white dark:bg-slate-900 border rounded-xl focus:outline-none"
             />
 
@@ -34,33 +34,32 @@
               >
                 <div class="min-w-0">
                   <div class="font-semibold text-slate-800 dark:text-slate-200 truncate">
-                    {{ phone.brand }} {{ phone.model }}
+                    {{ phone.brand }} {{ phone.name }}
                   </div>
                   <div class="text-[10px] text-slate-500 dark:text-slate-400 truncate">
-                    IMEI: {{ phone.imei1 }} • {{ phone.condition || 'Used' }}
-                    <span v-if="phone.clientName"> • Mijoz: {{ phone.clientName }}</span>
+                    {{ phone.storage || '-' }} • {{ phone.condition || 'Used' }} • Omborda: {{ phone.quantity }} ta
                   </div>
                 </div>
 
                 <div class="text-right">
-                  <div class="text-[10px] text-slate-400">Kirim narxi</div>
+                  <div class="text-[10px] text-slate-400">O'rtacha kirim</div>
                   <div class="font-bold text-slate-600 dark:text-slate-300">
-                    ${{ phone.purchasePrice ?? 0 }}
+                    ${{ phone.averageBuyPrice ?? phone.buyPrice ?? 0 }}
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Checkout Cart Items — Phone Cards with Editable Selling Price -->
+          <!-- Checkout Cart Items — Product Cards with Editable Quantity & Selling Price -->
           <div class="space-y-3 mt-4">
-            <span class="text-xs font-semibold text-slate-400">Chiptadagi telefonlar</span>
+            <span class="text-xs font-semibold text-slate-400">Chiptadagi mahsulotlar</span>
 
             <div
               v-if="cart.length === 0"
               class="text-center py-6 text-slate-400 text-xs border border-dashed rounded-xl"
             >
-              Telefon tanlanmagan. Qidiruv orqali qo'shing.
+              Mahsulot tanlanmagan. Qidiruv orqali qo'shing.
             </div>
 
             <div
@@ -72,22 +71,19 @@
               <div class="flex items-start justify-between">
                 <div class="flex-1 min-w-0">
                   <p class="font-bold text-slate-800 dark:text-white text-sm">
-                    {{ item.brand }} {{ item.model }}
-                  </p>
-                  <p class="text-[10px] text-slate-400 font-mono mt-0.5">
-                    IMEI: {{ item.imei1 }}
+                    {{ item.brand }} {{ item.name }}
                   </p>
                   <div class="flex flex-wrap gap-2 mt-2">
                     <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500">
                       {{ item.storage || '-' }}
                     </span>
-                    <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500">
-                      {{ item.color || '-' }}
-                    </span>
                     <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold"
                       :class="item.condition === 'New' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-600'"
                     >
                       {{ item.condition || 'Used' }}
+                    </span>
+                    <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-primary-100 dark:bg-primary-900/30 text-primary-600">
+                      Mavjud: {{ item.maxStock }} ta
                     </span>
                   </div>
                 </div>
@@ -100,15 +96,21 @@
                 </button>
               </div>
 
-              <!-- Price Section -->
+              <!-- Price & Qty Section -->
               <div class="grid grid-cols-3 gap-3 pt-2 border-t border-slate-200/50 dark:border-slate-800/50">
                 <div class="space-y-1">
-                  <span class="text-[10px] text-slate-400">Kirim narxi</span>
-                  <p class="font-bold text-slate-600 dark:text-slate-300 font-mono">${{ item.purchasePrice }}</p>
+                  <label class="text-[10px] font-semibold text-slate-400">Sotish soni *</label>
+                  <input
+                    v-model.number="item.qtyToSell"
+                    type="number"
+                    min="1"
+                    :max="item.maxStock"
+                    class="w-full px-2.5 py-1.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none font-mono font-bold"
+                  />
                 </div>
                 <div class="space-y-1">
-                  <span class="text-[10px] text-slate-400">Taklif narxi</span>
-                  <p class="font-semibold text-slate-500 font-mono">${{ item.suggestedPrice }}</p>
+                  <span class="text-[10px] text-slate-400">Kirim narxi (Avg)</span>
+                  <p class="font-bold text-slate-600 dark:text-slate-300 font-mono pt-1.5">${{ item.purchasePrice }}</p>
                 </div>
                 <div class="space-y-1">
                   <label class="text-[10px] font-semibold text-primary-500">Sotish narxi ($) *</label>
@@ -131,7 +133,7 @@
                     ? 'text-emerald-600 dark:text-emerald-400' 
                     : 'text-rose-600 dark:text-rose-400'
                 ]">
-                  {{ (item.sellingPrice - item.purchasePrice) >= 0 ? '+' : '' }}${{ item.sellingPrice - item.purchasePrice }}
+                  {{ (item.sellingPrice - item.purchasePrice) >= 0 ? '+' : '' }}${{ ((item.sellingPrice - item.purchasePrice) * item.qtyToSell).toFixed(2) }}
                 </span>
               </div>
             </div>
@@ -147,46 +149,41 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <!-- Name -->
             <div class="space-y-1.5">
-              <label class="text-[10px] font-semibold text-slate-400"
-                >Mijoz ismi</label
-              >
+              <label class="text-[10px] font-semibold text-slate-400">Mijoz ismi</label>
               <input
                 v-model="customer.name"
                 type="text"
-                placeholder="Odatdagi mijoz"
-                class="w-full px-3 py-2 text-xs bg-white dark:bg-slate-900 border rounded-lg focus:outline-none"
+                placeholder="Sherzod Alimov (ixtiyoriy)"
+                class="w-full px-3 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none"
               />
             </div>
+
             <!-- Phone -->
             <div class="space-y-1.5">
-              <label class="text-[10px] font-semibold text-slate-400"
-                >Mijoz telefon raqami</label
-              >
+              <label class="text-[10px] font-semibold text-slate-400">Telefon raqami</label>
               <input
                 v-model="customer.phone"
                 type="text"
-                placeholder="Masalan: +998901234567"
-                class="w-full px-3 py-2 text-xs bg-white dark:bg-slate-900 border rounded-lg focus:outline-none"
+                placeholder="Ixtiyoriy"
+                class="w-full px-3 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none font-mono"
               />
             </div>
           </div>
 
-          <!-- Payment Type -->
+          <!-- Payment Mode Options -->
           <div class="space-y-2">
-            <label class="text-[10px] font-semibold text-slate-400"
-              >To'lov turi *</label
-            >
-            <div class="grid grid-cols-5 gap-2">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">To'lov turi</span>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <button
-                v-for="type in ['Cash', 'Card', 'Transfer', 'Mixed', 'Installment']"
+                v-for="type in ['Cash', 'Card', 'Transfer', 'Mixed']"
                 :key="type"
                 type="button"
                 @click="handlePaymentTypeSelect(type)"
-                class="py-2 text-xs rounded-xl border text-center font-semibold transition-all cursor-pointer"
+                class="py-2.5 text-xs font-bold rounded-xl border transition-all cursor-pointer active:scale-95"
                 :class="[
-                  paymentType === type
-                    ? 'bg-primary-600 text-white border-transparent shadow'
-                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400',
+                  paymentType === type 
+                    ? 'bg-primary-600 text-white border-primary-600 shadow-md shadow-primary-600/10' 
+                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300'
                 ]"
               >
                 {{ translatePaymentType(type) }}
@@ -194,7 +191,7 @@
             </div>
           </div>
 
-          <!-- Mixed Payment Details Form -->
+          <!-- Mixed Payment Fields Allocation -->
           <div
             v-if="paymentType === 'Mixed'"
             class="p-4 rounded-xl border dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/10 space-y-3"
@@ -235,12 +232,8 @@
 
       <!-- Right: Cart Invoicing totals -->
       <div class="space-y-6">
-        <div
-          class="p-6 rounded-2xl border glass-card flex flex-col justify-between h-80"
-        >
-          <h3
-            class="text-sm font-bold text-slate-800 dark:text-white pb-3 border-b border-slate-200/50 dark:border-slate-800/50"
-          >
+        <div class="p-6 rounded-2xl border glass-card flex flex-col justify-between h-80 shadow-lg">
+          <h3 class="text-sm font-bold text-slate-800 dark:text-white pb-3 border-b border-slate-200/50 dark:border-slate-800/50">
             Sotuv hisobi
           </h3>
 
@@ -264,9 +257,7 @@
               <span class="font-mono font-bold">${{ totalProfit() }}</span>
             </div>
 
-            <div
-              class="pt-3 border-t border-slate-200/50 dark:border-slate-800/50 flex justify-between text-slate-800 dark:text-white font-extrabold text-sm"
-            >
+            <div class="pt-3 border-t border-slate-200/50 dark:border-slate-800/50 flex justify-between text-slate-800 dark:text-white font-extrabold text-sm">
               <span>Yakuniy summa:</span>
               <span class="font-mono">${{ netTotal() }}</span>
             </div>
@@ -277,11 +268,7 @@
             :disabled="salesStore.loading || cart.length === 0"
             class="w-full py-3 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg cursor-pointer transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
           >
-            {{
-              salesStore.loading
-                ? "Hisob-faktura yaratilmoqda..."
-                : "Kassani yakunlash va chek chiqarish"
-            }}
+            {{ salesStore.loading ? "Hisob-faktura yaratilmoqda..." : "Kassani yakunlash va chek chiqarish" }}
           </button>
         </div>
       </div>
@@ -293,12 +280,8 @@
         v-if="invoiceReceipt"
         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs no-print"
       >
-        <div
-          class="w-full max-w-md p-6 rounded-2xl glass-card border shadow-2xl flex flex-col items-center"
-        >
-          <div
-            class="flex items-center justify-between w-full pb-3 border-b border-slate-200/50 dark:border-slate-800/50 mb-4"
-          >
+        <div class="w-full max-w-md p-6 rounded-2xl glass-card border shadow-2xl flex flex-col items-center">
+          <div class="flex items-center justify-between w-full pb-3 border-b border-slate-200/50 dark:border-slate-800/50 mb-4">
             <span class="text-xs font-bold text-slate-400">To'lov yakunlandi</span>
             <button
               @click="closeReceipt"
@@ -313,26 +296,18 @@
             id="invoiceReceiptArea"
             class="print-area w-full p-6 bg-white rounded-xl border text-black font-sans text-xs space-y-4"
           >
-            <!-- Receipt Header -->
             <div class="text-center space-y-1">
               <h4 class="text-sm font-extrabold uppercase tracking-wide">
                 Telefon do'koni cheki
               </h4>
-              <p class="text-[9px] text-gray-500">
-                PhoneCRM
-              </p>
+              <p class="text-[9px] text-gray-500">PhoneCRM</p>
               <p class="text-[9px] text-gray-400">Tel: +998 90 123 45 67</p>
             </div>
 
-            <!-- Receipt Metadata -->
-            <div
-              class="border-y border-dashed border-gray-300 py-2 space-y-1 text-[9px] text-gray-600"
-            >
+            <div class="border-y border-dashed border-gray-300 py-2 space-y-1 text-[9px] text-gray-600">
               <div class="flex justify-between">
                 <span>Faktura raqami:</span>
-                <span class="font-bold text-black">{{
-                  invoiceReceipt.invoiceNumber
-                }}</span>
+                <span class="font-bold text-black">{{ invoiceReceipt.invoiceNumber }}</span>
               </div>
               <div class="flex justify-between">
                 <span>Sana:</span>
@@ -340,9 +315,7 @@
               </div>
               <div class="flex justify-between">
                 <span>Mijoz:</span>
-                <span class="text-black">{{
-                  invoiceReceipt.customerName || "Odatdagi mijoz"
-                }}</span>
+                <span class="text-black">{{ invoiceReceipt.customerName || "Retail Customer" }}</span>
               </div>
               <div class="flex justify-between">
                 <span>Telefon:</span>
@@ -350,60 +323,55 @@
               </div>
             </div>
 
-            <!-- Receipt Items -->
             <div class="space-y-2">
               <div class="font-semibold border-b pb-1 text-[10px]">
-                Sotib olingan telefonlar
+                Sotilgan mahsulotlar
               </div>
               <div
                 v-for="phone in invoiceReceipt.phones"
-                :key="phone.phoneId"
+                :key="phone.productId"
                 class="flex justify-between items-start"
               >
                 <div>
                   <div class="font-bold text-black">
-                    {{ phone.brand }} {{ phone.model }}
+                    {{ phone.brand }} {{ phone.model || phone.name }}
                   </div>
                   <div class="text-[9px] text-gray-500">
-                    IMEI: {{ phone.imei1 }}
+                    {{ phone.storage || '-' }} • {{ phone.condition || 'Used' }} • {{ phone.quantity }} ta
                   </div>
                 </div>
                 <div class="text-right">
                   <div class="font-bold text-black">
-                    ${{ phone.sellingPrice }}
+                    ${{ (phone.sellingPrice * phone.quantity).toLocaleString() }}
+                  </div>
+                  <div class="text-[8px] text-gray-400">
+                    ${{ phone.sellingPrice }} / ta
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Receipt Totals -->
-            <div
-              class="border-t border-dashed border-gray-300 pt-2 space-y-1.5 text-right font-mono"
-            >
+            <div class="border-t border-dashed border-gray-300 pt-2 space-y-1.5 text-right font-mono">
               <div class="flex justify-between text-gray-500 text-[10px]">
                 <span>Chegirma:</span>
                 <span>-${{ invoiceReceipt.discount }}</span>
               </div>
-              <div
-                class="flex justify-between text-black font-extrabold text-[11px] pt-1"
-              >
+              <div class="flex justify-between text-black font-extrabold text-[11px] pt-1">
                 <span>Yakuniy to'lov:</span>
                 <span>${{ invoiceReceipt.totalAmount }}</span>
               </div>
               <div class="text-[9px] text-gray-500 mt-1">
-                To'lov usuli:
-                {{ translatePaymentType(invoiceReceipt.paymentType) }}
+                To'lov usuli: {{ translatePaymentType(invoiceReceipt.paymentType) }}
               </div>
             </div>
 
-            <!-- Footer -->
             <div class="text-center text-[8px] text-gray-400 pt-4 border-t">
               Xaridingiz uchun rahmat!<br />
-              Barcha mobil qurilmalarga 12 oylik kafolat beriladi.
+              Barcha mobil qurilmalarga kafolat beriladi.
             </div>
           </div>
 
-          <!-- Printable Controls -->
+          <!-- Controls -->
           <div class="flex justify-end gap-3 mt-6 w-full">
             <button
               @click="closeReceipt"
@@ -422,7 +390,6 @@
         </div>
       </div>
     </Transition>
-
   </div>
 </template>
 
@@ -496,27 +463,32 @@ const searchPhones = async () => {
   }
   try {
     const res = await axios.get("/api/phones", {
-      params: { search: searchQuery.value, status: "In Stock", limit: 8 },
+      params: { search: searchQuery.value, limit: 8 },
     });
-    searchResults.value = res.data.data;
+    // Filter to only products with positive stock
+    searchResults.value = res.data.data.filter(p => p.quantity > 0);
   } catch (error) {
-    console.error("Phone search failed:", error.message);
+    console.error("Product search failed:", error.message);
   }
 };
 
-const addToCart = (phone) => {
-  if (cart.value.some((p) => p._id === phone._id)) {
-    notifications.warning(
-      "Already Added",
-      "This phone is already added to the ticket",
-    );
+const addToCart = (product) => {
+  if (cart.value.some((p) => p._id === product._id)) {
+    notifications.warning("Allaqachon qo'shilgan", "Ushbu mahsulot chiptaga qo'shilgan");
     return;
   }
-  // Add phone with editable sellingPrice — default to the suggested sellingPrice from inventory
+  
   cart.value.push({
-    ...phone,
-    suggestedPrice: phone.sellingPrice || 0,
-    sellingPrice: phone.sellingPrice || 0,
+    _id: product._id,
+    brand: product.brand,
+    name: product.name,
+    storage: product.storage,
+    condition: product.condition,
+    maxStock: product.quantity,
+    qtyToSell: 1,
+    purchasePrice: product.averageBuyPrice || product.buyPrice || 0,
+    suggestedPrice: product.sellingPrice || 0,
+    sellingPrice: product.sellingPrice || 0,
   });
   searchQuery.value = "";
   searchResults.value = [];
@@ -527,11 +499,11 @@ const removeFromCart = (index) => {
 };
 
 const subtotal = () => {
-  return cart.value.reduce((sum, p) => sum + (p.sellingPrice || 0), 0);
+  return cart.value.reduce((sum, p) => sum + ((p.sellingPrice || 0) * p.qtyToSell), 0);
 };
 
 const totalProfit = () => {
-  return cart.value.reduce((sum, p) => sum + ((p.sellingPrice || 0) - (p.purchasePrice || 0)), 0);
+  return cart.value.reduce((sum, p) => sum + (((p.sellingPrice || 0) - (p.purchasePrice || 0)) * p.qtyToSell), 0);
 };
 
 const netTotal = () => {
@@ -550,19 +522,18 @@ const processCheckout = async () => {
   const phoneIds = cart.value.map((p) => p._id);
   const net = netTotal();
 
-  // Build selling prices map to send to backend
   const sellingPrices = {};
+  const quantities = {};
+  
   cart.value.forEach(p => {
     sellingPrices[p._id] = p.sellingPrice || 0;
+    quantities[p._id] = p.qtyToSell || 1;
   });
 
   if (paymentType.value === "Mixed") {
     const allocated = mixedAllocatedTotal();
     if (Math.abs(allocated - net) > 0.01) {
-      notifications.error(
-        "Checkout Error",
-        "Mixed payment allocation must match the exact net invoice total",
-      );
+      notifications.error("Checkout xatoligi", "Taqsimlangan summa umumiy summaga teng bo'lishi shart");
       return;
     }
   }
@@ -572,6 +543,7 @@ const processCheckout = async () => {
     phoneNumber: customer.phone || "",
     phoneIds,
     sellingPrices,
+    quantities,
     discount: discount.value,
     paymentType: paymentType.value,
     paymentDetails: paymentType.value === "Mixed" ? paymentDetails : null,
@@ -602,7 +574,8 @@ const closeReceipt = () => {
 };
 
 const formatDate = (dateStr) => {
-  return new Date(dateStr).toLocaleString();
+  if (!dateStr) return "";
+  return new Date(dateStr).toLocaleString("uz-UZ");
 };
 
 onMounted(() => {
@@ -614,3 +587,18 @@ onMounted(() => {
   });
 });
 </script>
+
+<style scoped>
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  .print-area {
+    display: block !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    width: 100% !important;
+  }
+}
+</style>

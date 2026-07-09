@@ -21,7 +21,7 @@ export const useInventoryStore = defineStore('inventory', {
         this.pages = res.data.pages;
         this.currentPage = res.data.currentPage;
       } catch (error) {
-        useNotificationStore().error('Inventory Error', 'Failed to fetch phones');
+        useNotificationStore().error('Inventory Error', 'Failed to fetch products');
       } finally {
         this.loading = false;
       }
@@ -29,30 +29,59 @@ export const useInventoryStore = defineStore('inventory', {
     async createPhone(phoneData) {
       try {
         const res = await axios.post('/api/phones', phoneData);
-        useNotificationStore().success('Success', 'Phone added successfully');
+        useNotificationStore().success('Success', 'Product added successfully');
         return res.data.success;
       } catch (error) {
-        useNotificationStore().error('Error', error.response?.data?.message || 'Failed to add phone');
+        useNotificationStore().error('Error', error.response?.data?.message || 'Failed to add product');
         return false;
       }
     },
     async updatePhone(id, phoneData) {
       try {
         const res = await axios.put(`/api/phones/${id}`, phoneData);
-        useNotificationStore().success('Success', 'Phone inventory updated');
+        useNotificationStore().success('Success', 'Product catalog updated');
         return res.data.success;
       } catch (error) {
-        useNotificationStore().error('Error', error.response?.data?.message || 'Failed to update phone');
+        useNotificationStore().error('Error', error.response?.data?.message || 'Failed to update product');
         return false;
       }
     },
     async deletePhone(id) {
       try {
         await axios.delete(`/api/phones/${id}`);
-        useNotificationStore().success('Success', 'Phone deleted from catalog');
+        useNotificationStore().success('Success', 'Product deleted from catalog');
         return true;
       } catch (error) {
-        useNotificationStore().error('Error', 'Failed to delete phone');
+        useNotificationStore().error('Error', error.response?.data?.message || 'Failed to delete product');
+        return false;
+      }
+    },
+    async fetchProductEntries(id) {
+      try {
+        const res = await axios.get(`/api/phones/${id}/entries`);
+        return res.data.data;
+      } catch (error) {
+        useNotificationStore().error('Error', 'Failed to load inventory entries');
+        return [];
+      }
+    },
+    async updateInventoryEntry(entryId, entryData) {
+      try {
+        const res = await axios.put(`/api/phones/entries/${entryId}`, entryData);
+        useNotificationStore().success('Success', 'Inventory entry updated');
+        return res.data.success;
+      } catch (error) {
+        useNotificationStore().error('Error', error.response?.data?.message || 'Failed to update entry');
+        return false;
+      }
+    },
+    async deleteInventoryEntry(entryId) {
+      try {
+        await axios.delete(`/api/phones/entries/${entryId}`);
+        useNotificationStore().success('Success', 'Inventory entry deleted');
+        return true;
+      } catch (error) {
+        useNotificationStore().error('Error', 'Failed to delete entry');
         return false;
       }
     },
@@ -82,8 +111,8 @@ export const useInventoryStore = defineStore('inventory', {
         const isBuyback = !!purchaseData.customerName;
         const title = isBuyback ? 'Purchase Complete' : 'Restock Successful';
         const msg = isBuyback
-          ? `Bought back ${res.data.phonesCreated} phone(s) from customer`
-          : `Received ${res.data.phonesCreated} phones`;
+          ? `Bought back ${res.data.phonesCreated} product(s) from customer`
+          : `Received ${res.data.phonesCreated} units`;
         useNotificationStore().success(title, msg);
         return true;
       } catch (error) {

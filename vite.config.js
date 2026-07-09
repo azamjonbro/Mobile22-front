@@ -98,7 +98,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'https://mobile.techinfo.uz',
+        target: 'http://localhost:4999',
         changeOrigin: true,
         secure: false
       }
